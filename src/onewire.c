@@ -17,31 +17,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "LPC214x.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include "LPC214x.h"
+#include "configuration.h"
+#include "io.h"
 #include "onewire.h"
 #include "sched.h"
 #include "vic.h"
 
 static inline void setpin0() {
-	FIO0CLR = (1<<7);
-	FIO0DIR |= (1<<7);
+	FIOCLR(FIO_OW) = PIN_OW;
+	FIODIR(FIO_OW) |= PIN_OW;
 }
 
 static inline void setpin1() {
-	FIO0SET = (1<<7);
-	FIO0DIR |= (1<<7);
+	FIOSET(FIO_OW) = PIN_OW;
+	FIODIR(FIO_OW) |= PIN_OW;
 }
 
 static inline void setpinhiz() {
-	FIO0DIR &= ~(1<<7);
+	FIODIR(FIO_OW) &= ~PIN_OW;
 }
 
 static inline uint32_t getpin() {
-	return !!(FIO0PIN & (1<<7));
+	return !!(FIOPIN(FIO_OW) & PIN_OW);
 }
 
 static inline uint32_t xferbyte(uint32_t thebyte) {

@@ -37,8 +37,10 @@
 #include "systemfan.h"
 #include "sched.h"
 #include "sensor.h"
+#include "configuration.h"
 
 #define SYSFAN_PWM_PERIOD (TICKS_MS( 10 ))
+#define CLAMP(x,y) (x < y ? x : y)
 
 uint32_t syspwmval = 0;
 
@@ -63,15 +65,10 @@ static int32_t SystemFanSense_Work(void) {
 	if (Sensor_IsValid(TC_COLD_JUNCTION)) {
 		float systemp = Sensor_GetTemp(TC_COLD_JUNCTION);
 
-		// Sort this out with something better at some point
-		if (systemp > 50.0f) {
-			sysfanspeed = 0xff;
-		} else if (systemp > 45.0f) {
-			sysfanspeed = 0xc0;
-		} else if (systemp > 42.0f) {
-			sysfanspeed = 0x80;
-		} else if (systemp > 40.0f) {
-			sysfanspeed = 0x50;
+		if (systemp >= SYSFAN_MIN_TEMP)
+		{
+			float t = CLAMP((systemp-SYSFAN_MIN_TEMP)/(float)SYSFAN_MAX_TEMP,1.f);
+			sysfanspeed = (uint8_t)CLAMP((uint16_t)(SYSFAN_MIN_PWM + t*(SYSFAN_MAX_PWM-SYSFAN_MIN_PWM)),0xff);
 		}
 	} else {
 		// No sensor, run at full speed as a precaution
