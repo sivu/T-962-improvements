@@ -7,7 +7,7 @@
 #include "onewire.h"
 #include "max31855.h"
 #include "nvstorage.h"
-
+#include "tmp75.h"
 #include "sensor.h"
 
 /*
@@ -161,6 +161,8 @@ float Sensor_GetTemp(TempSensor_t sensor) {
 		return coldjunction;
 	} else if(sensor == TC_AVERAGE) {
 		return avgtemp;
+	} else if (sensor == TC_TMP75) {
+		return TMP75_GetTemp();
 	} else if(sensor < TC_NUM_ITEMS) {
 		return temperature[sensor - TC_LEFT];
 	} else {
@@ -173,6 +175,8 @@ uint8_t Sensor_IsValid(TempSensor_t sensor) {
 		return cjsensorpresent;
 	} else if(sensor == TC_AVERAGE) {
 		return 1;
+	} else if (sensor == TC_TMP75) {
+		return TMP75_IsPresent();
 	} else if(sensor >= TC_NUM_ITEMS) {
 		return 0;
 	}
@@ -181,8 +185,8 @@ uint8_t Sensor_IsValid(TempSensor_t sensor) {
 
 void Sensor_ListAll(void) {
 	int count = 5;
-	char* names[] = {"Left", "Right", "Extra 1", "Extra 2", "Cold junction"};
-	TempSensor_t sensors[] = {TC_LEFT, TC_RIGHT, TC_EXTRA1, TC_EXTRA2, TC_COLD_JUNCTION};
+	char* names[] = {"Left", "Right", "Extra 1", "Extra 2", "Cold junction", "Board"};
+	TempSensor_t sensors[] = {TC_LEFT, TC_RIGHT, TC_EXTRA1, TC_EXTRA2, TC_COLD_JUNCTION,TC_TMP75};
 	char* format = "\n%13s: %4.1fdegC";
 
 	for (int i = 0; i < count; i++) {
@@ -192,5 +196,8 @@ void Sensor_ListAll(void) {
 	}
 	if (!Sensor_IsValid(TC_COLD_JUNCTION)) {
 		printf("\nNo cold-junction sensor on PCB");
+	}
+	if (!Sensor_IsValid(TC_TMP75)) {
+		printf("\nNo TMP75 board temperature sensor on PCB");
 	}
 }

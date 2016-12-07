@@ -39,6 +39,10 @@
 #include "sensor.h"
 
 #define SYSFAN_PWM_PERIOD (TICKS_MS( 10 ))
+#define TEMP_AT_MIN 40
+#define TEMP_AT_MAX 50
+#define SPEED_AT_MIN 0x50
+#define SPEED_AT_MAX 0xff
 
 uint32_t syspwmval = 0;
 
@@ -60,18 +64,16 @@ static int32_t SystemFanPWM_Work(void) {
 static int32_t SystemFanSense_Work(void) {
 	uint8_t sysfanspeed = 0;
 
-	if (Sensor_IsValid(TC_COLD_JUNCTION)) {
-		float systemp = Sensor_GetTemp(TC_COLD_JUNCTION);
+	if (Sensor_IsValid(TC_TMP75) || Sensor_IsValid(TC_COLD_JUNCTION)) {
+		float systemp = Sensor_GetTemp(Sensor_IsValid(TC_TMP75) ? TC_TMP75 : TC_COLD_JUNCTION);
 
-		// Sort this out with something better at some point
-		if (systemp > 50.0f) {
-			sysfanspeed = 0xff;
-		} else if (systemp > 45.0f) {
-			sysfanspeed = 0xc0;
-		} else if (systemp > 42.0f) {
-			sysfanspeed = 0x80;
-		} else if (systemp > 40.0f) {
-			sysfanspeed = 0x50;
+		if (systemp >= TEMP_AT_MIN)
+		{
+			float t = (systemp-TEMP_AT_MIN)/(TEMP_AT_MAX-TEMP_AT_MIN);
+			if (t > 1.f)
+				t = 1.f;
+
+			sysfanspeed = SPEED_AT_MIN + t*(SPEED_AT_MAX-SPEED_AT_MIN);
 		}
 	} else {
 		// No sensor, run at full speed as a precaution

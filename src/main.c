@@ -40,6 +40,7 @@
 #include "vic.h"
 #include "max31855.h"
 #include "systemfan.h"
+#include "tmp75.h"
 #include "setup.h"
 
 extern uint8_t logobmp[];
@@ -128,6 +129,7 @@ int main(void) {
 	RTC_Init();
 	OneWire_Init();
 	SPI_TC_Init();
+	TMP75_Init();
 	Reflow_Init();
 	SystemFan_Init();
 
