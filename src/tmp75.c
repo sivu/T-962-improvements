@@ -2,6 +2,7 @@
 #include "tmp75.h"
 #include "i2c.h"
 #include "sched.h"
+#include <stdio.h>
 
 #define TMP75_ADDR 0x90
 
@@ -44,6 +45,8 @@ void TMP75_Init()
 		buf[0] = REG_TEMP;
 		I2C_Xfer(TMP75_ADDR,buf,1,1); //reset pointer to temperature register
 	}
+	printf("\nTMP75 sensor %s\n",tmp75present ? "found" : "not found");
+
 	Sched_SetWorkfunc(TMP75_WORK,TMP75_Work);
 	Sched_SetState(TMP75_WORK,tmp75present ? 2 : 0,0);
 }
