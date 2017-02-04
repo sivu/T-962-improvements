@@ -523,16 +523,16 @@ static int32_t Main_Work(void) {
 		}
 
 		y = 50;
-		len = snprintf(buf, sizeof(buf), "COLDJUNCTION");
-		LCD_disp_str((uint8_t*)buf, len, 0, y, FONT6X6);
+		int flen = snprintf(buf, sizeof(buf), Sensor_IsValid(TC_TMP75) ? "BOARD TEMP " : "COLDJUNCTION ");
+		LCD_disp_str((uint8_t*)buf, flen, 0, y, FONT6X6);
 
-		y += 8;
-		if (Sensor_IsValid(TC_COLD_JUNCTION)) {
-			len = snprintf(buf, sizeof(buf), "%3.1f`", Sensor_GetTemp(TC_COLD_JUNCTION));
+//		y += 8;
+		if (Sensor_IsValid(TC_COLD_JUNCTION) || Sensor_IsValid(TC_TMP75)) {
+			len = snprintf(buf, sizeof(buf), "%3.1f`", Sensor_GetTemp(Sensor_IsValid(TC_TMP75) ? TC_TMP75 : TC_COLD_JUNCTION));
 		} else {
 			len = snprintf(buf, sizeof(buf), "NOT PRESENT");
 		}
-		LCD_disp_str((uint8_t*)buf, len, (12 * 6) - (len * 6), y, FONT6X6);
+		LCD_disp_str((uint8_t*)buf, len, flen * 6, y, FONT6X6);
 
 		LCD_BMPDisplay(stopbmp, 127 - 17, 0);
 
