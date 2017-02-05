@@ -40,11 +40,13 @@
 
 #define SYSFAN_PWM_PERIOD (TICKS_MS( 10 ))
 #define TEMP_AT_MIN 40
+#define TEMP_TO_REACH 35
 #define TEMP_AT_MAX 50
-#define SPEED_AT_MIN 0x50
+#define SPEED_AT_MIN 0x7f
 #define SPEED_AT_MAX 0xff
 
 uint32_t syspwmval = 0;
+int fan_on = 0;
 
 static int32_t SystemFanPWM_Work(void) {
 	static uint8_t state = 0;
@@ -67,11 +69,23 @@ static int32_t SystemFanSense_Work(void) {
 	if (Sensor_IsValid(TC_TMP75) || Sensor_IsValid(TC_COLD_JUNCTION)) {
 		float systemp = Sensor_GetTemp(Sensor_IsValid(TC_TMP75) ? TC_TMP75 : TC_COLD_JUNCTION);
 
-		if (systemp >= TEMP_AT_MIN)
+
+		if (!fan_on && systemp >= TEMP_AT_MIN)
+		{
+			fan_on = 1;
+		}
+		else if (fan_on && systemp <= TEMP_TO_REACH)
+		{
+			fan_on = 0;
+		}
+
+		if (fan_on)
 		{
 			float t = (systemp-TEMP_AT_MIN)/(TEMP_AT_MAX-TEMP_AT_MIN);
 			if (t > 1.f)
 				t = 1.f;
+			if (t < 0.f)
+				t = 0.f;
 
 			sysfanspeed = SPEED_AT_MIN + t*(SPEED_AT_MAX-SPEED_AT_MIN);
 		}
